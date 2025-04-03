@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user.model');
 var bcrypt = require('bcrypt');
+var jwtAutherization = require('../middleware/jwtAutherization');
+var jwtAutherizationAdmin = require('../middleware/jwtAutherizationAdmin');
 
 /* GET users listing. */
 router.get('/users', async function(req, res, next) {
@@ -43,7 +45,7 @@ router.post('/register', async function(req, res, next) {
 
 
 /* Admin approve user */
-router.put('/users/:id/approve', async function(req, res, next) {
+router.put('/users/:id/approve', [jwtAutherization, jwtAutherizationAdmin], async function(req, res, next) {
   const { id } = req.params;
   try {
     const user = await User.findById(id);
