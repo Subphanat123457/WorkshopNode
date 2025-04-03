@@ -6,7 +6,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-
+var authRouter = require('./routes/auth');
 // require dotenv
 require('dotenv').config();
 // require db
@@ -30,15 +30,34 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1', indexRouter);
-app.use('/api/v1/users', usersRouter);
+app.use('/api/v1', usersRouter);
+app.use('/api/v1', authRouter);
+
+// error code
+app.use((err, req, res, next) => {
+  if (err) {
+    res.status(400).json({
+      status: 'error',
+      message: 'ข้อมูลไม่ถูกต้อง',
+      data: null
+    });
+  }else{
+    res.status(401).json({
+      status: 'unauthorized',
+      message: 'ไม่มีสิทธิในการเข้าถึงข้อมูล',
+      data: null
+    });
+  }
+})
+
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
