@@ -4,9 +4,13 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+// require routes //
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
+var productRouter = require('./routes/product');
+// ------------- //
+
 // require dotenv
 require('dotenv').config();
 // require db
@@ -29,9 +33,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+// api/v1/
 app.use('/api/v1', indexRouter);
 app.use('/api/v1', usersRouter);
 app.use('/api/v1', authRouter);
+app.use('/api/v1', productRouter);
 
 // error code
 app.use((err, req, res, next) => {

@@ -1,7 +1,7 @@
 
 
 module.exports = async function (req, res, next) {
-    const token = req.headers.authorization;
+    const token = await req.headers.authorization;
     if (!token) {
         return res.status(401).json({
             status: 'Unauthorized',
@@ -9,4 +9,5 @@ module.exports = async function (req, res, next) {
             data: null
         });
     }
+    next();
 }

@@ -20,6 +20,6 @@ module.exports = async function (req, res, next) {
             });
         }
         req.userId = decoded.userId;
-        next(); // Call next() to proceed to the next middleware
+        next();
     });
 }

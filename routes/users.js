@@ -47,14 +47,9 @@ router.post('/register', async function(req, res, next) {
 /* Admin approve user */
 router.put('/users/:id/approve', [jwtAutherization, jwtAutherizationAdmin], async function(req, res, next) {
   const { id } = req.params;
+  const isApproved = req.body.isApproved;
   try {
-    const user = await User.findById(id);
-    
-    if (user && !user.isApproved) {
-      user.isApproved = true;
-      await user.save();
-    }
-
+    const user = await User.findByIdAndUpdate(id, { isApproved }, { new: true });
     res.status(200).json({ 
       status: 'success',
       message: 'Approved successfully',
