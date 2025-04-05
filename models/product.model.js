@@ -7,6 +7,7 @@ var productSchema = new Schema({
     description: { type: String, required: true },
     image: { type: String, required: true },
     quantity: { type: Number, required: true },
+    customer: { type: Schema.Types.ObjectId, ref: 'users', required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('products', productSchema);
