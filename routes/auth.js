@@ -3,66 +3,40 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
 var User = require('../models/user.model');
+var { responseBadRequest, responseUnauthorized, responseServerError, responseCreated, responseSuccess } = require('../utils/response');
 
 /* POST login */
 router.post('/login', async function(req, res, next) {
     const { email, password } = req.body;
     if (!email || !password) {
-        return res.status(400).json({
-            status: 'error',
-            message: 'กรุณากรอก email และ password',
-            data: null
-        });
+        return responseBadRequest(res, 'กรุณากรอก email และ password');
     }
     // check user in database
     const user = await User.findOne({ email });
     if (!user) {
-        return res.status(401).json({
-            status: 'error',
-            message: 'ไม่มีผู้ใช้ที่ลงทะเบียน',
-            data: null
-        });
+        return responseUnauthorized(res, 'ไม่มีผู้ใช้ที่ลงทะเบียน');
     }
     if (!user.isApproved) {
-        return res.status(403).json({
-            status: 'error',
-            message: 'ยังไม่ได้ Approved',
-            data: null
-        });
+        return responseUnauthorized(res, 'ยังไม่ได้ Approved');
     }
     // Pass and create token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({
-        status: 'success',
-        message: 'ล็อกอินสำเร็จ',
-        data: { token }
-    });
-
+    return responseSuccess(res, { token }, 'ล็อกอินสำเร็จ');
 })       
-
-
 
 /* POST users listing. */
 router.post('/register', async function(req, res, next) {
     const { email, password } = req.body; // รับแค่ Field email และ password
     if (!email || !password) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'กรุณากรอก email และ password',
-        data: null
-      });
+      return responseBadRequest(res, 'กรุณากรอก email และ password');
     }
     try {
       const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS)); // เข้ารหัสรหัสผ่าน
       const user = await User.create({ email, password: hashedPassword }); // สร้างผู้ใช้ด้วย email และรหัสผ่านที่เข้ารหัส
-      res.status(201).json({
-        status: 'success',
-        message: 'created successfully',
-        data: user
-      });
+      return responseCreated(res, user, 'created successfully');
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      return responseServerError(res, err.message);
     }
-  });
+});
 
 module.exports = router;

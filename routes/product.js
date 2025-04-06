@@ -7,6 +7,8 @@ var multer = require('multer');
 var fs = require('fs');
 var path = require('path');
 var getUserIdFromToken = require('../utils/userIdFromToken');
+var { responseSuccess, responseCreated, responseBadRequest, responseServerError } = require('../utils/response');
+
 // multer config
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -26,17 +28,9 @@ router.get('/', [jwtAutherization], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const products = await Product.find({ customer: userId });
     try {
-        res.status(200).json({
-            status: 'success',
-            message: 'Products fetched successfully',
-            data: products
-        });
+        return responseSuccess(res, products, 'Products fetched successfully'); 
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: err.message,
-            data: null
-        });
+        return responseServerError(res, err.message);
     }
 });
 
@@ -47,27 +41,15 @@ router.post('/', [jwtAutherization, upload.single('image')], async function (req
     const image = req.file ? req.file.filename : null;
     const userId = getUserIdFromToken(req.headers.authorization);
     if (!name || !price || !description || !image || !quantity) {
-        return res.status(400).json({
-            status: 'error',
-            message: 'Missing required fields',
-            data: null
-        });
+        return responseBadRequest(res, 'Missing required fields');
     }
 
     try {
         const product = new Product({ name, price, description, image, quantity, customer: userId });
         await product.save();
-        res.status(201).json({
-            status: 'success',
-            message: 'Product created successfully',
-            data: product
-        });
+        return responseCreated(res, product, 'Product created successfully');
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: err.message,
-            data: null
-        });
+        return responseServerError(res, err.message);
     }
 });
 
@@ -81,11 +63,7 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
     try {
         const product = await Product.findById(id, { customer: userId });
         if (!product) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Product not found',
-                data: null
-            });
+            return responseBadRequest(res, 'Product not found');
         }
 
         const productData = { name, price, description, quantity, image }; // Prepare updated data
@@ -99,17 +77,9 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
             }
         }
         const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true });
-        res.status(200).json({
-            status: 'success',
-            message: 'Product updated successfully',
-            data: updatedProduct
-        });
+        return responseSuccess(res, updatedProduct, 'Product updated successfully');
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: err.message,
-            data: null
-        });
+        return responseServerError(res, err.message);
     }
 });
 
@@ -119,17 +89,9 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
     try {
         await Product.findByIdAndDelete(id, { customer: userId });
-        res.status(200).json({
-            status: 'success',
-            message: 'Product deleted successfully',
-            data: null
-        });
+        return responseSuccess(res, null, 'Product deleted successfully');
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: err.message,
-            data: null
-        });
+        return responseServerError(res, err.message);
     }
 });
 
@@ -138,17 +100,9 @@ router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
     const orders = await Order.find({ productId: id });
     try {
-        res.status(200).json({
-            status: 'success',
-            message: 'Orders fetched successfully',
-            data: orders
-        });
+        return responseSuccess(res, orders, 'Orders fetched successfully');
     } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            message: 'Error fetching orders',
-            error: error
-        });
+        return responseServerError(res, error);
     }
 });
 
@@ -159,35 +113,19 @@ router.post('/:id/orders', [jwtAutherization], async function (req, res, next) {
     try {
         const product = await Product.findById(id);
         if (!product) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Product not found',
-                data: null
-            });
+            return responseBadRequest(res, 'Product not found');
         }
         if (product.quantity < quantity) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'Insufficient quantity',
-                data: null
-            });
+            return responseBadRequest(res, 'Insufficient quantity');
         }
         const order = new Order({
             productId: id,
             quantity: quantity,
         });
         await order.save();
-        res.status(201).json({
-            status: 'success',
-            message: 'Order created successfully',
-            data: order
-        });
+        return responseCreated(res, order, 'Order created successfully');
     } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            message: 'Error creating order',
-            data: null
-        });
+        return responseServerError(res, error);
     }
 });
 
