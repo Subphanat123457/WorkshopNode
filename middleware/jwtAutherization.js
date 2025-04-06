@@ -1,5 +1,6 @@
 
 
+/* JWT Authorization */
 module.exports = async function (req, res, next) {
     const token = await req.headers.authorization;
     if (!token) {

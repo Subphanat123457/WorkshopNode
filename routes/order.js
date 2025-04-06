@@ -5,6 +5,7 @@ var Product = require('../models/product.model');
 var jwtAutherization = require('../middleware/jwtAutherization');
 var { responseSuccess, responseServerError } = require('../utils/response');
 
+/* GET orders */
 router.get('/', [jwtAutherization], async function (req, res, next) {
     try {
         const orders = await Order.find();

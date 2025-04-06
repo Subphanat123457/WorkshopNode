@@ -95,7 +95,7 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
     }
 });
 
-
+/* GET product orders */
 router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
     const orders = await Order.find({ productId: id });
@@ -106,6 +106,7 @@ router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
     }
 });
 
+/* POST product order */
 router.post('/:id/orders', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
     const { quantity } = req.body;

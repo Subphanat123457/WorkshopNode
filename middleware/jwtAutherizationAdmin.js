@@ -2,6 +2,7 @@ var jwt = require('jsonwebtoken');
 var User = require('../models/user.model'); // Ensure User model is imported
 var { responseUnauthorized } = require('../utils/response');
 
+/* JWT Authorization Admin */
 module.exports = async function (req, res, next) {
     const token = req.headers.authorization;
     jwt.verify(token, process.env.JWT_SECRET, async function (err, decoded) {
