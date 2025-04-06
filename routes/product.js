@@ -1,8 +1,11 @@
 var express = require('express');
 var router = express.Router();
+/* models */
 var Product = require('../models/product.model');
 var Order = require('../models/order.model');
+/* middleware */
 var jwtAutherization = require('../middleware/jwtAutherization');
+/* utils */
 var multer = require('multer');
 var fs = require('fs');
 var path = require('path');
@@ -110,13 +113,15 @@ router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
 router.post('/:id/orders', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
     const { quantity } = req.body;
-    // const userId = getUserIdFromToken(req.headers.authorization);
+    const order = await Order.find({ productId: id });
+    const totalQuantity = order.reduce((acc, curr) => acc + curr.quantity, 0);
+
     try {
         const product = await Product.findById(id);
         if (!product) {
             return responseBadRequest(res, 'Product not found');
         }
-        if (product.quantity < quantity) {
+        if (product.quantity < quantity + totalQuantity) {
             return responseBadRequest(res, 'Insufficient quantity');
         }
         const order = new Order({
