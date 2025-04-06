@@ -9,6 +9,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
 var productRouter = require('./routes/product');
+var orderRouter = require('./routes/order');
 // ------------- //
 
 // require dotenv
@@ -39,7 +40,7 @@ app.use('/api/v1', indexRouter);
 app.use('/api/v1', usersRouter);
 app.use('/api/v1', authRouter);
 app.use('/api/v1', productRouter);
-
+app.use('/api/v1', orderRouter);
 // error code
 app.use((err, req, res, next) => {
   if (err) {
