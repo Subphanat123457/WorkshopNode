@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Product = require('../models/product.model');
+var Order = require('../models/order.model');
 var jwtAutherization = require('../middleware/jwtAutherization');
 var multer = require('multer');
 var fs = require('fs');
@@ -21,7 +22,7 @@ const upload = multer({ storage: storage })
 // ------------- //
 
 /* GET products listing. */
-router.get('/products', [jwtAutherization], async function (req, res, next) {
+router.get('/', [jwtAutherization], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const products = await Product.find({ customer: userId });
     try {
@@ -41,7 +42,7 @@ router.get('/products', [jwtAutherization], async function (req, res, next) {
 
 
 /* POST product */
-router.post('/products', [jwtAutherization, upload.single('image')], async function (req, res, next) {
+router.post('/', [jwtAutherization, upload.single('image')], async function (req, res, next) {
     const { name, price, description, quantity } = req.body;
     const image = req.file ? req.file.filename : null;
     const userId = getUserIdFromToken(req.headers.authorization);
@@ -71,7 +72,7 @@ router.post('/products', [jwtAutherization, upload.single('image')], async funct
 });
 
 /* PUT product */
-router.put('/products/:id', [jwtAutherization, upload.single('image')], async function (req, res, next) {
+router.put('/:id', [jwtAutherization, upload.single('image')], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const { id } = req.params;
     const { name, price, description, quantity } = req.body;
@@ -113,7 +114,7 @@ router.put('/products/:id', [jwtAutherization, upload.single('image')], async fu
 });
 
 /* DELETE product */
-router.delete('/products/:id', [jwtAutherization], async function (req, res, next) {
+router.delete('/:id', [jwtAutherization], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const { id } = req.params;
     try {
@@ -131,5 +132,64 @@ router.delete('/products/:id', [jwtAutherization], async function (req, res, nex
         });
     }
 });
+
+
+router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
+    const { id } = req.params;
+    const orders = await Order.find({ productId: id });
+    try {
+        res.status(200).json({
+            status: 'success',
+            message: 'Orders fetched successfully',
+            data: orders
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: 'Error fetching orders',
+            error: error
+        });
+    }
+});
+
+router.post('/:id/orders', [jwtAutherization], async function (req, res, next) {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    // const userId = getUserIdFromToken(req.headers.authorization);
+    try {
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Product not found',
+                data: null
+            });
+        }
+        if (product.quantity < quantity) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Insufficient quantity',
+                data: null
+            });
+        }
+        const order = new Order({
+            productId: id,
+            quantity: quantity,
+        });
+        await order.save();
+        res.status(201).json({
+            status: 'success',
+            message: 'Order created successfully',
+            data: order
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: 'Error creating order',
+            data: null
+        });
+    }
+});
+
 
 module.exports = router;

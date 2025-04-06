@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var jwt = require('jsonwebtoken');
-// var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt');
 var User = require('../models/user.model');
 
 /* POST login */
@@ -39,5 +39,30 @@ router.post('/login', async function(req, res, next) {
     });
 
 })       
+
+
+
+/* POST users listing. */
+router.post('/register', async function(req, res, next) {
+    const { email, password } = req.body; // รับแค่ Field email และ password
+    if (!email || !password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'กรุณากรอก email และ password',
+        data: null
+      });
+    }
+    try {
+      const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS)); // เข้ารหัสรหัสผ่าน
+      const user = await User.create({ email, password: hashedPassword }); // สร้างผู้ใช้ด้วย email และรหัสผ่านที่เข้ารหัส
+      res.status(201).json({
+        status: 'success',
+        message: 'created successfully',
+        data: user
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
 module.exports = router;
