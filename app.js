@@ -39,22 +39,6 @@ app.use('/api/v1/users', usersRouter);
 app.use('/api/v1', authRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/orders', orderRouter);
-// error code
-app.use((err, req, res, next) => {
-  if (err) {
-    res.status(400).json({
-      status: 'error',
-      message: 'ข้อมูลไม่ถูกต้อง',
-      data: null
-    });
-  }else{
-    res.status(401).json({
-      status: 'unauthorized',
-      message: 'ไม่มีสิทธิในการเข้าถึงข้อมูล',
-      data: null
-    });
-  }
-})
 
 
 // catch 404 and forward to error handler

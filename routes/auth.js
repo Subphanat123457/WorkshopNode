@@ -11,17 +11,21 @@ router.post('/login', async function(req, res, next) {
     if (!email || !password) {
         return responseBadRequest(res, 'กรุณากรอก email และ password');
     }
-    // check user in database
-    const user = await User.findOne({ email });
-    if (!user) {
-        return responseUnauthorized(res, 'ไม่มีผู้ใช้ที่ลงทะเบียน');
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return responseUnauthorized(res, 'ไม่มีผู้ใช้ที่ลงทะเบียน');
+        }
+        if (!user.isApproved) {
+            return responseUnauthorized(res, 'ยังไม่ได้ Approved');
+        }
+        // Pass and create token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return responseSuccess(res, { token }, 'ล็อกอินสำเร็จ');
+
+    } catch (err) {
+        return responseServerError(res, err.message);
     }
-    if (!user.isApproved) {
-        return responseUnauthorized(res, 'ยังไม่ได้ Approved');
-    }
-    // Pass and create token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    return responseSuccess(res, { token }, 'ล็อกอินสำเร็จ');
 })       
 
 /* POST users listing. */
