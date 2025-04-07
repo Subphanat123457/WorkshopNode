@@ -12,6 +12,9 @@ router.put('/:id/approve', [jwtAutherization, jwtAutherizationAdmin], async func
   if (!isApproved) {
     return responseBadRequest(res, 'isApproved is required');
   }
+  if (!id) {
+    return responseBadRequest(res, 'Id is not found');
+  }
   try {
     const user = await User.findByIdAndUpdate(id, { isApproved }, { new: true });
     if (!user) {

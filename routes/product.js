@@ -31,7 +31,7 @@ router.get('/', [jwtAutherization], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const products = await Product.find({ customer: userId });
     try {
-        return responseSuccess(res, products, 'Products fetched successfully'); 
+        return responseSuccess(res, products, 'Products fetched successfully');
     } catch (err) {
         return responseServerError(res, err.message);
     }
@@ -63,6 +63,10 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
     const { name, price, description, quantity } = req.body;
     const image = req.file ? req.file.filename : null; // Handle image upload
 
+    if (!id){
+        return responseBadRequest(res, 'Id is not found');
+    }
+
     try {
         const product = await Product.findById(id, { customer: userId });
         if (!product) {
@@ -90,6 +94,9 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
 router.delete('/:id', [jwtAutherization], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const { id } = req.params;
+    if (!id) {
+        return responseBadRequest(res, 'Id is not found');
+    }
     try {
         await Product.findByIdAndDelete(id, { customer: userId });
         return responseSuccess(res, null, 'Product deleted successfully');
@@ -102,6 +109,9 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
 router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
     const orders = await Order.find({ productId: id });
+    if (!id) {
+        return responseBadRequest(res, 'Id is not found');
+    }
     try {
         return responseSuccess(res, orders, 'Orders fetched successfully');
     } catch (error) {
@@ -115,6 +125,10 @@ router.post('/:id/orders', [jwtAutherization], async function (req, res, next) {
     const { quantity } = req.body;
     const order = await Order.find({ productId: id });
     const totalQuantity = order.reduce((acc, curr) => acc + curr.quantity, 0);
+
+    if (!id) {
+        return responseBadRequest(res, 'Id is not found');
+    }
 
     try {
         const product = await Product.findById(id);
