@@ -8,20 +8,25 @@ var { responseBadRequest, responseUnauthorized, responseServerError, responseCre
 /* POST login */
 router.post('/login', async function(req, res, next) {
     const { email, password } = req.body;
+    /* Check pattern Email */
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+        return responseBadRequest(res, 'Invalid email format');
+    }
     if (!email || !password) {
-        return responseBadRequest(res, 'กรุณากรอก email และ password');
+        return responseBadRequest(res, 'Please enter email and password');
     }
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return responseUnauthorized(res, 'ไม่มีผู้ใช้ที่ลงทะเบียน');
+            return responseUnauthorized(res, 'No registered user found');
         }
         if (!user.isApproved) {
-            return responseUnauthorized(res, 'ยังไม่ได้ Approved');
+            return responseUnauthorized(res, 'Not yet approved');
         }
         // Pass and create token
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        return responseSuccess(res, { token }, 'ล็อกอินสำเร็จ');
+        return responseSuccess(res, { token }, 'Login successful');
 
     } catch (err) {
         return responseServerError(res, err.message);
