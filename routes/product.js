@@ -109,10 +109,11 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
 });
 
 /* GET product by id */
-router.get('/:id', [jwtAutherization], async function (req, res, next) {
+router.get('/:id', [jwtAutherization], async function (req, res) {
+    const userId = getUserIdFromToken(req.headers.authorization);
     const { id } = req.params;
     try {
-        const product = await Product.findById(id);
+        const product = await Product.findById({ _id: id, customer: userId });
         if (!product) {
             return responseBadRequest(res, 'Product not found');
         }
