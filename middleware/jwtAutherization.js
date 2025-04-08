@@ -1,17 +1,22 @@
-var jwt = require('jsonwebtoken');
-var { responseUnauthorized } = require('../utils/response');
+const jwt = require('jsonwebtoken');
+const { responseUnauthorized } = require('../utils/response');
+const User = require('../models/user.model');
 
-/* JWT Authorization */
 module.exports = async function (req, res, next) {
-    const token = req.headers.authorization; 
+    const token = req.headers.authorization;
     if (!token) {
-        return responseUnauthorized(res, 'Unauthorization')
+        return responseUnauthorized(res, 'Unauthorization');
     }
-    jwt.verify(token, process.env.JWT_SECRET, function (err, decoded) {
-        if (err) {
-            return responseUnauthorized(res, 'Token is Broken');
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        if (!user || !user.isApproved) {
+            return responseUnauthorized(res, 'User is not an admin');
         }
-        req.user = decoded; // Store decoded token data in request object
-        next(); // Moved next() inside the callback to ensure it runs after verification
-    });
-}
+        req.user = decoded;
+        next();
+    } catch (err) {
+        return responseUnauthorized(res, 'Token is Broken');
+    }
+};

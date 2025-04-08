@@ -63,7 +63,7 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
     const { name, price, description, quantity } = req.body;
     const image = req.file ? req.file.filename : null; // Handle image upload
 
-    if (!id){
+    if (!id) {
         return responseBadRequest(res, 'Id is not found');
     }
 
@@ -99,11 +99,26 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
     }
     try {
         await Product.findByIdAndDelete(id, { customer: userId });
-        return responseSuccess(res, null, 'Product deleted successfully');
+        return responseSuccess(res, 'Product deleted successfully');
     } catch (err) {
         return responseServerError(res, err.message);
     }
 });
+
+/* GET product by id */
+router.get('/:id', [jwtAutherization], async function (req, res, next) {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    if (!id){
+        return responseBadRequest(res, 'Id is not found')
+    }
+    try {
+        return responseSuccess(res, product, 'Products fetched successfully');
+    } catch (err) {
+        return responseServerError(res, err.message);
+    }
+});
+
 
 /* GET product orders */
 router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
