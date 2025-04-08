@@ -9,11 +9,11 @@ var { responseSuccess, responseBadRequest, responseServerError } = require('../u
 router.put('/:id/approve', [jwtAutherization, jwtAutherizationAdmin], async function (req, res, next) {
   const { id } = req.params;
   const isApproved = req.body.isApproved;
-  if (!isApproved) {
-    return responseBadRequest(res, 'isApproved is required');
-  }
   if (!id) {
     return responseBadRequest(res, 'Id is not found');
+  }
+  if (!isApproved) {
+    return responseBadRequest(res, 'isApproved is required');
   }
   try {
     const user = await User.findByIdAndUpdate(id, { isApproved }, { new: true });

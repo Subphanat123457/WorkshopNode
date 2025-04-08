@@ -6,7 +6,7 @@ var User = require('../models/user.model');
 var { responseBadRequest, responseUnauthorized, responseServerError, responseCreated, responseSuccess } = require('../utils/response');
 
 /* POST login */
-router.post('/login', async function(req, res, next) {
+router.post('/login', async function (req, res, next) {
     const { email, password } = req.body;
     /* Check pattern Email */
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,20 +31,24 @@ router.post('/login', async function(req, res, next) {
     } catch (err) {
         return responseServerError(res, err.message);
     }
-})       
+})
 
 /* POST users listing. */
-router.post('/register', async function(req, res, next) {
+router.post('/register', async function (req, res, next) {
     const { email, password } = req.body;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+        return responseBadRequest(res, 'Invalid email format');
+    }
     if (!email || !password) {
-      return responseBadRequest(res, 'กรุณากรอก email และ password');
+        return responseBadRequest(res, 'กรุณากรอก email และ password');
     }
     try {
-      const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS)); // เข้ารหัสรหัสผ่าน
-      const user = await User.create({ email, password: hashedPassword });
-      return responseCreated(res, user, 'created successfully');
+        const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS)); // เข้ารหัสรหัสผ่าน
+        const user = await User.create({ email, password: hashedPassword });
+        return responseCreated(res, user, 'created successfully');
     } catch (err) {
-      return responseServerError(res, err.message);
+        return responseServerError(res, err.message);
     }
 });
 

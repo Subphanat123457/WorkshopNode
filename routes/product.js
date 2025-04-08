@@ -63,6 +63,9 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
     const { name, price, description, quantity } = req.body;
     const image = req.file ? req.file.filename : null; // Handle image upload
 
+    if (!name || !price || !description || !image || !quantity) {
+        return responseBadRequest(res, 'Missing required fields');
+    }
     if (!id) {
         return responseBadRequest(res, 'Id is not found');
     }
@@ -108,59 +111,61 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
 /* GET product by id */
 router.get('/:id', [jwtAutherization], async function (req, res, next) {
     const { id } = req.params;
-    const product = await Product.findById(id);
-    if (!id){
-        return responseBadRequest(res, 'Id is not found')
-    }
     try {
-        return responseSuccess(res, product, 'Products fetched successfully');
+        const product = await Product.findById(id);
+        if (!product) {
+            return responseBadRequest(res, 'Product not found');
+        }
+        return responseSuccess(res, product, 'Product fetched successfully');
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while fetching the product');
     }
 });
 
 
 /* GET product orders */
-router.get('/:id/orders', [jwtAutherization], async function (req, res, next) {
+router.get('/:id/orders', [jwtAutherization], async function (req, res) {
     const { id } = req.params;
-    const orders = await Order.find({ productId: id });
     if (!id) {
         return responseBadRequest(res, 'Id is not found');
     }
+ 
     try {
+        const orders = await Order.find({ productId: id });
         return responseSuccess(res, orders, 'Orders fetched successfully');
-    } catch (error) {
-        return responseServerError(res, error);
+    } catch (err) {
+        return responseServerError(res, 'An error occurred while fetching the orders');
     }
 });
 
 /* POST product order */
-router.post('/:id/orders', [jwtAutherization], async function (req, res, next) {
+router.post('/:id/orders', [jwtAutherization], async function (req, res) {
     const { id } = req.params;
     const { quantity } = req.body;
-    const order = await Order.find({ productId: id });
-    const totalQuantity = order.reduce((acc, curr) => acc + curr.quantity, 0);
 
     if (!id) {
         return responseBadRequest(res, 'Id is not found');
     }
-
     try {
+        const order = await Order.find({ productId: id });
+        const totalQuantity = order.reduce((acc, curr) => acc + curr.quantity, 0);
         const product = await Product.findById(id);
+
         if (!product) {
             return responseBadRequest(res, 'Product not found');
         }
         if (product.quantity < quantity + totalQuantity) {
             return responseBadRequest(res, 'Insufficient quantity');
         }
-        const order = new Order({
+
+        const newOrder = new Order({
             productId: id,
             quantity: quantity,
         });
-        await order.save();
-        return responseCreated(res, order, 'Order created successfully');
+        await newOrder.save();
+        return responseCreated(res, newOrder, 'Order created successfully');
     } catch (error) {
-        return responseServerError(res, error);
+        return responseServerError(res, error.message);
     }
 });
 
