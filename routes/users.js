@@ -22,7 +22,7 @@ router.put('/:id/approve', [jwtAutherization, jwtAutherizationAdmin], async func
     }
     return responseSuccess(res, user, 'Approved successfully');
   } catch (err) {
-    return responseServerError(res, err.message);
+    return responseServerError(res, 'An error occurred while approving the user');
   }
 });
 

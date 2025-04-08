@@ -11,7 +11,7 @@ router.get('/', [jwtAutherization], async function (req, res, next) {
         const orders = await Order.find();
         return responseSuccess(res, orders, 'Orders fetched successfully', 200);
     } catch (error) {
-        return responseServerError(res, error.message); 
+        return responseServerError(res, 'An error occurred while fetching the orders'); 
     }
 });
 

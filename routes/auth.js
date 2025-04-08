@@ -29,7 +29,7 @@ router.post('/login', async function (req, res, next) {
         return responseSuccess(res, { token }, 'Login successful');
 
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while logging in');
     }
 })
 
@@ -41,14 +41,14 @@ router.post('/register', async function (req, res, next) {
         return responseBadRequest(res, 'Invalid email format');
     }
     if (!email || !password) {
-        return responseBadRequest(res, 'กรุณากรอก email และ password');
+        return responseBadRequest(res, 'Please enter email and password');
     }
     try {
         const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS)); // เข้ารหัสรหัสผ่าน
         const user = await User.create({ email, password: hashedPassword });
         return responseCreated(res, user, 'created successfully');
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while creating the user');
     }
 });
 

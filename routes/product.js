@@ -33,7 +33,7 @@ router.get('/', [jwtAutherization], async function (req, res, next) {
     try {
         return responseSuccess(res, products, 'Products fetched successfully');
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while fetching the products');
     }
 });
 
@@ -52,7 +52,7 @@ router.post('/', [jwtAutherization, upload.single('image')], async function (req
         await product.save();
         return responseCreated(res, product, 'Product created successfully');
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while creating the product');
     }
 });
 
@@ -89,7 +89,7 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
         const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true });
         return responseSuccess(res, updatedProduct, 'Product updated successfully');
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while updating the product');
     }
 });
 
@@ -104,7 +104,7 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
         await Product.findByIdAndDelete(id, { customer: userId });
         return responseSuccess(res, 'Product deleted successfully');
     } catch (err) {
-        return responseServerError(res, err.message);
+        return responseServerError(res, 'An error occurred while deleting the product');
     }
 });
 
@@ -164,8 +164,8 @@ router.post('/:id/orders', [jwtAutherization], async function (req, res) {
         });
         await newOrder.save();
         return responseCreated(res, newOrder, 'Order created successfully');
-    } catch (error) {
-        return responseServerError(res, error.message);
+    } catch (err) {
+        return responseServerError(res, 'An error occurred while creating the order');
     }
 });
 
