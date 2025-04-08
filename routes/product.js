@@ -101,8 +101,8 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
         return responseBadRequest(res, 'Id is not found');
     }
     try {
-        await Product.findByIdAndDelete(id, { customer: userId });
-        return responseSuccess(res, 'Product deleted successfully');
+        const product =  await Product.findByIdAndDelete(id, { customer: userId });
+        return responseSuccess(res, product,'Product deleted successfully');
     } catch (err) {
         return responseServerError(res, 'An error occurred while deleting the product');
     }
