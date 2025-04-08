@@ -10,10 +10,6 @@ module.exports = async function (req, res, next) {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.userId);
-        if (!user || !user.isApproved) {
-            return responseUnauthorized(res, 'User is not an admin');
-        }
         req.user = decoded;
         next();
     } catch (err) {

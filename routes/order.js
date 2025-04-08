@@ -9,9 +9,9 @@ var { responseSuccess, responseServerError } = require('../utils/response');
 router.get('/', [jwtAutherization], async function (req, res, next) {
     try {
         const orders = await Order.find();
-        return responseSuccess(res, orders, 'Orders fetched successfully', 200); // Added status code
+        return responseSuccess(res, orders, 'Orders fetched successfully', 200);
     } catch (error) {
-        return responseServerError(res, error.message); // Ensure error handling is correct
+        return responseServerError(res, error.message); 
     }
 });
 
