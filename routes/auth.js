@@ -24,14 +24,18 @@ router.post('/login', async function (req, res, next) {
         if (!user.isApproved) {
             return responseUnauthorized(res, 'Not yet approved');
         }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return responseUnauthorized(res, 'Invalid password');
+        }
         // Pass and create token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        return responseSuccess(res, { token }, 'Login successful');
+        const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return responseSuccess(res, { token, isAdmin: user.isAdmin }, 'Login successful');
 
     } catch (err) {
         return responseServerError(res, 'An error occurred while logging in');
     }
-})
+});
 
 /* POST users listing. */
 router.post('/register', async function (req, res, next) {

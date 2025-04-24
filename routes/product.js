@@ -37,16 +37,24 @@ router.get('/', [jwtAutherization], async function (req, res, next) {
     }
 });
 
+router.get('/all', [jwtAutherization], async function (req, res, next) {
+    const products = await Product.find({});
+    try {
+        return responseSuccess(res, products, 'Products fetched successfully');
+    } catch (err) {
+        return responseServerError(res, 'An error occurred while fetching the products');
+    }
+});
+
 
 /* POST product */
 router.post('/', [jwtAutherization, upload.single('image')], async function (req, res, next) {
-    const { name, price, description, quantity } = req.body;
-    const image = req.file ? req.file.filename : null;
+    const { name, price, description, quantity, image } = req.body;
+    // const image = req.file ? req.file.filename : null;
     const userId = getUserIdFromToken(req.headers.authorization);
-    if (!name || !price || !description || !image || !quantity) {
-        return responseBadRequest(res, 'Missing required fields');
-    }
-
+    // if (!name || !price || !description || !image || !quantity) {
+    //     return responseBadRequest(res, 'Missing required fields');
+    // }
     try {
         const product = new Product({ name, price, description, image, quantity, customer: userId });
         await product.save();
@@ -60,8 +68,8 @@ router.post('/', [jwtAutherization, upload.single('image')], async function (req
 router.put('/:id', [jwtAutherization, upload.single('image')], async function (req, res, next) {
     const userId = getUserIdFromToken(req.headers.authorization);
     const { id } = req.params;
-    const { name, price, description, quantity } = req.body;
-    const image = req.file ? req.file.filename : null; // Handle image upload
+    const { name, price, description, quantity, image } = req.body;
+    // const image = req.file ? req.file.filename : null; // Handle image upload
 
     if (!name || !price || !description || !image || !quantity) {
         return responseBadRequest(res, 'Missing required fields');
@@ -77,15 +85,6 @@ router.put('/:id', [jwtAutherization, upload.single('image')], async function (r
         }
 
         const productData = { name, price, description, quantity, image }; // Prepare updated data
-        if (image) {
-            const oldImage = product.image;
-            if (oldImage) {
-                const imagePath = path.join(__dirname, '../public/images', oldImage);
-                if (fs.existsSync(imagePath)) {
-                    fs.unlinkSync(imagePath);
-                }
-            }
-        }
         const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true });
         return responseSuccess(res, updatedProduct, 'Product updated successfully');
     } catch (err) {
@@ -101,8 +100,8 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
         return responseBadRequest(res, 'Id is not found');
     }
     try {
-        const product =  await Product.findByIdAndDelete(id, { customer: userId });
-        return responseSuccess(res, product,'Product deleted successfully');
+        const product = await Product.findByIdAndDelete(id, { customer: userId });
+        return responseSuccess(res, product, 'Product deleted successfully');
     } catch (err) {
         return responseServerError(res, 'An error occurred while deleting the product');
     }
@@ -110,10 +109,10 @@ router.delete('/:id', [jwtAutherization], async function (req, res, next) {
 
 /* GET product by id */
 router.get('/:id', [jwtAutherization], async function (req, res) {
-    const userId = getUserIdFromToken(req.headers.authorization);
+    // const userId = getUserIdFromToken(req.headers.authorization);
     const { id } = req.params;
     try {
-        const product = await Product.findById({ _id: id, customer: userId });
+        const product = await Product.findById({ _id: id });
         if (!product) {
             return responseBadRequest(res, 'Product not found');
         }
@@ -130,7 +129,7 @@ router.get('/:id/orders', [jwtAutherization], async function (req, res) {
     if (!id) {
         return responseBadRequest(res, 'Id is not found');
     }
- 
+
     try {
         const orders = await Order.find({ productId: id });
         return responseSuccess(res, orders, 'Orders fetched successfully');
@@ -143,7 +142,13 @@ router.get('/:id/orders', [jwtAutherization], async function (req, res) {
 router.post('/:id/orders', [jwtAutherization], async function (req, res) {
     const { id } = req.params;
     const { quantity } = req.body;
-
+    const userId = getUserIdFromToken(req.headers.authorization);
+    if (!quantity) {
+        return responseBadRequest(res, 'Missing required fields');
+    }
+    if (!userId) {
+        return responseBadRequest(res, 'User not found');
+    }
     if (!id) {
         return responseBadRequest(res, 'Id is not found');
     }
@@ -162,6 +167,7 @@ router.post('/:id/orders', [jwtAutherization], async function (req, res) {
         const newOrder = new Order({
             productId: id,
             quantity: quantity,
+            customerId: userId,
         });
         await newOrder.save();
         return responseCreated(res, newOrder, 'Order created successfully');

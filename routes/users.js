@@ -5,6 +5,17 @@ var jwtAutherization = require('../middleware/jwtAutherization');
 var jwtAutherizationAdmin = require('../middleware/jwtAutherizationAdmin');
 var { responseSuccess, responseBadRequest, responseServerError } = require('../utils/response');
 
+
+// * GET users listing. */
+router.get('/', [jwtAutherization, jwtAutherizationAdmin], async function (req, res, next) {
+  try {
+    const users = await User.find({ isApproved: false });
+    return responseSuccess(res, users, 'Users fetched successfully', 200);
+  } catch (error) {
+    return responseServerError(res, 'An error occurred while fetching the users');
+  }
+});
+
 /* Admin approve user */
 router.put('/:id/approve', [jwtAutherization, jwtAutherizationAdmin], async function (req, res, next) {
   const { id } = req.params;
